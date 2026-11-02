@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0a0c14">
+  <meta name="description" content="SHADOW WARRIOR – GAMERKIE EDITION: Fight Your Way. Become a Legend. Premium 2D Action Platformer & Beat 'em Up.">
+  <title>SHADOW WARRIOR – GAMERKIE EDITION</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="game-shell">
+    <!-- Main Rendering Canvas (L[span_14](start_span)[span_14](end_span)[span_17](start_span)[span_17](end_span)[span_20](start_span)[span_20](end_span)ogical 1280x720) -->
+    <canvas id="game-canvas" width="1280" height="720"></canvas>
+
+    <!-- In-Game HUD Overlay -->
+    <div id="hud-layer" class="hidden">
+      <!-- TOP LEFT: Portrait, Health, Energy, Combo -->
+      <div class="hud-top-left">
+        <div class="hero-portrait-box">
+          <canvas id="hud-portrait-canvas" width="56" height="56"></canvas>
+          <span id="hud-hero-lvl" class="hero-badge">HERO</span>
+        </div>
+        <div class="hud-bars">
+          <div class="hud-hero-name-row">
+            <span id="hud-hero-name">KAELEN</span>
+            <span id="hud-weapon-name" class="weapon-pill">Fists</span>
+          </div>
+          <div class="bar-container hp-bar-wrap">
+            <div id="hud-hp-fill" class="bar-fill hp-fill" style="width: 100%;"></div>
+            <span id="hud-hp-text" class="bar-label">100 / 100</span>
+          </div>
+          <div class="bar-container mp-bar-wrap">
+            <div id="hud-mp-fill" class="bar-fill mp-fill" style="width: 100%;"></div>
+            <span id="hud-mp-text" class="bar-label">100 / 100</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOP CENTER: World, Level, Mode, Score, Boss Bar -->
+      <div class="hud-top-center">
+        <div class="stage-banner">
+          <span id="hud-world-label">WORLD 1: CITY STREETS</span>
+          <span class="divider">|</span>
+          <span id="hud-level-label">LEVEL 1-1</span>
+          <span class="divider">|</span>
+          <span id="hud-score-label">SCORE: 0</span>
+        </div>
+        <div id="hud-boss-bar-wrap" class="boss-bar-container hidden">
+          <div class="boss-title-row">
+            <span id="hud-boss-name">BOSS NAME</span>
+            <span id="hud-boss-phase">PHASE 1</span>
+          </div>
+          <div class="bar-container boss-hp-wrap">
+            <div id="hud-boss-fill" class="bar-fill boss-fill" style="width: 100%;"></div>
+            <span id="hud-boss-text" class="bar-label">1000 / 1000</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOP RIGHT: Currencies & Pause -->
+      <div class="hud-top-right">
+        <div class="currency-pill gold-pill" title="Gold Coins">
+          <span class="coin-dot gold-dot"></span>
+          <span id="hud-coins-text">0</span>
+        </div>
+        <div class="currency-pill gem-pill" title="Rare Gems">
+          <span class="coin-dot gem-dot"></span>
+          <span id="hud-gems-text">0</span>
+        </div>
+        <button id="btn-hud-pause" class="hud-icon-btn" aria-label="Pause Game">II</button>
+      </div>
+
+      <!-- COMBO & NOTIFICATION OVERLAY -->
+      <div id="hud-combo-box" class="combo-display hidden">
+        <div id="hud-combo-count" class="combo-num">3 HIT</div>
+        <div id="hud-combo-sub" class="combo-sub">COMBO!</div>
+      </div>
+
+      <div id="hud-toast" class="hud-toast hidden">CHECKPOINT REACHED!</div>
+
+      <!-- BOTTOM: Mobile Multi-Touch Controls -->
+      <div id="touch-controls" class="touch-layer">
+        <div class="touch-left-cluster">
+          <button id="touch-left" class="touch-btn dpad-btn" data-action="left" aria-label="Move Left">&#9664;</button>
+          <button id="touch-crouch" class="touch-btn dpad-btn crouch-btn" data-action="down" aria-label="Block or Crouch">&#9660;</button>
+          <button id="touch-right" class="touch-btn dpad-btn" data-action="right" aria-label="Move Right">&#9654;</button>
+        </div>
+        <div class="touch-right-cluster">
+          <button id="touch-dodge" class="touch-btn act-btn btn-dodge" data-action="dodge">DODGE</button>
+          <button id="touch-special" class="touch-btn act-btn btn-special" data-action="special">SPECIAL</button>
+          <button id="touch-heavy" class="touch-btn act-btn btn-heavy" data-action="heavy">HEAVY</button>
+          <button id="touch-punch" class="touch-btn act-btn btn-punch" data-action="punch">PUNCH</button>
+          <button id="touch-jump" class="touch-btn act-btn btn-jump" data-action="jump">JUMP</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN MENU OVERLAY -->
+    <div id="screen-main-menu" class="menu-screen active">
+      <div class="menu-header-bar">
+        <div class="brand-badge">GAMERKIE</div>
+        <div class="menu-currencies">
+          <span class="currency-pill gold-pill"><span class="coin-dot gold-dot"></span><span id="menu-coins">0</span></span>
+          <span class="currency-pill gem-pill"><span class="coin-dot gem-dot"></span><span id="menu-gems">0</span></span>
+          <button id="btn-daily-reward" class="daily-btn">DAILY REWARD</button>
+        </div>
+      </div>
+
+      <div class="title-centerpiece">
+        <div class="edition-tag">GAMERKIE EDITION</div>
+        <h1 class="game-title">SHADOW WARRIOR</h1>
+        <p class="game-tagline">Fight Your Way. Become a Legend.</p>
+      </div>
+
+      <div class="menu-grid">
+        <button id="btn-menu-play" class="menu-btn primary-cta">PLAY NOW</button>
+        <button id="btn-menu-continue" class="menu-btn accent-cta">CONTINUE (W1-1)</button>
+        <button id="btn-menu-story" class="menu-btn">STORY MODE (WORLDS 1–8 + &infin;)</button>
+        <button id="btn-menu-endless" class="menu-btn">GAME MODES (ENDLESS / BOSS RUSH)</button>
+        <button id="btn-menu-heroes" class="menu-btn">CHARACTER SELECTION</button>
+        <button id="btn-menu-weapons" class="menu-btn">WEAPONS ARMORY</button>
+        <button id="btn-menu-upgrades" class="menu-btn">WARRIOR UPGRADES</button>
+        <button id="btn-menu-missions" class="menu-btn">DAILY MISSIONS</button>
+        <button id="btn-menu-achievements" class="menu-btn">ACHIEVEMENTS</button>
+        <button id="btn-menu-settings" class="menu-btn">SETTINGS &amp; AUDIO</button>
+        <button id="btn-menu-howto" class="menu-btn">HOW TO PLAY</button>
+        <button id="btn-menu-fullscreen" class="menu-btn">FULLSCREEN</button>
+      </div>
+
+      <div class="menu-footer">
+        <span>GAMERKIE &mdash; Play. Fight. Conquer.</span>
+        <span id="menu-high-score">HIGH SCORE: 0</span>
+      </div>
+    </div>
+
+    <!-- DYNAMIC SUB-MODAL SCREEN (Story Select, Modes, Heroes, Weapons, Upgrades, Missions, Achievements, Settings, HowTo) -->
+    <div id="screen-modal" class="menu-screen modal-overlay hidden">
+      <div class="modal-card">
+        <div class="modal-top">
+          <h2 id="modal-title">MODAL TITLE</h2>
+          <div class="modal-currencies">
+            <span class="currency-pill gold-pill"><span class="coin-dot gold-dot"></span><span id="modal-coins">0</span></span>
+            <span class="currency-pill gem-pill"><span class="coin-dot gem-dot"></span><span id="modal-gems">0</span></span>
+          </div>
+          <button id="btn-modal-close" class="close-btn">&times; BACK</button>
+        </div>
+        <div id="modal-body" class="modal-body"></div>
+      </div>
+    </div>
+
+    <!-- PAUSE MENU OVERLAY -->
+    <div id="screen-pause" class="menu-screen overlay-dim hidden">
+      <div class="dialog-box">
+        <h2 class="dialog-title">GAME PAUSED</h2>
+        <p id="pause-stage-info" class="dialog-subtitle">WORLD 1 - LEVEL 1-1</p>
+        <div class="dialog-actions">
+          <button id="btn-pause-resume" class="menu-btn primary-cta">RESUME BATTLE</button>
+          <button id="btn-pause-restart" class="menu-btn">RESTART LEVEL</button>
+          <button id="btn-pause-settings" class="menu-btn">SETTINGS</button>
+          <button id="btn-pause-howto" class="menu-btn">HOW TO PLAY</button>
+          <button id="btn-pause-menu" class="menu-btn danger-btn">MAIN MENU</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- GAME OVER OVERLAY -->
+    <div id="screen-gameover" class="menu-screen overlay-dim hidden">
+      <div class="dialog-box gameover-box">
+        <h2 class="dialog-title danger-text">WARRIOR FALLEN</h2>
+        <p class="dialog-subtitle">The shadows claim another battle, but legends rise again.</p>
+        <div class="stats-summary">
+          <div class="stat-row"><span>Final Score</span><strong id="go-score">0</strong></div>
+          <div class="stat-row"><span>Enemies Defeated</span><strong id="go-kills">0</strong></div>
+          <div class="stat-row"><span>Coins Collected</span><strong id="go-coins">0</strong></div>
+        </div>
+        <div class="dialog-actions">
+          <button id="btn-go-retry" class="menu-btn primary-cta">RETRY LEVEL</button>
+          <button id="btn-go-upgrades" class="menu-btn">UPGRADE WARRIOR</button>
+          <button id="btn-go-menu" class="menu-btn">RETURN TO MENU</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- VICTORY SCREEN OVERLAY -->
+    <div id="screen-victory" class="menu-screen overlay-dim hidden">
+      <div class="dialog-box victory-box">
+        <h2 class="dialog-title gold-text">LEVEL COMPLETED!</h2>
+        <div id="vic-stars" class="stars-row">&#9733; &#9733; &#9733;</div>
+        <div class="stats-summary">
+          <div class="stat-row"><span>Stage Score</span><strong id="vic-score">0</strong></div>
+          <div class="stat-row"><span>Enemies Defeated</span><strong id="vic-kills">0</strong></div>
+          <div class="stat-row"><span>Coins Rewarded</span><strong id="vic-coins">+0</strong></div>
+          <div class="stat-row"><span>Gems Rewarded</span><strong id="vic-gems">+0</strong></div>
+        </div>
+        <div class="dialog-actions">
+          <button id="btn-vic-next" class="menu-btn primary-cta">NEXT LEVEL</button>
+          <button id="btn-vic-continue" class="menu-btn">CONTINUE TO MENU</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modular Engine Scripts -->
+  <script src="save.js"></script>
+  <script src="audio.js"></script>
+  <script src="weapons.js"></script>
+  <script src="player.js"></script>
+  <script src="combat.js"></script>
+  <script src="enemies.js"></script>
+  <script src="bosses.js"></script>
+  <script src="levels.js"></script>
+  <script src="ui.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
