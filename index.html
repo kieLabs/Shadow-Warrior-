@@ -6,8 +6,207 @@
   <meta name="theme-color" content="#0a0c14">
   <meta name="description" content="SHADOW WARRIOR – GAMERKIE EDITION: Fight Your Way. Become a Legend. Premium 2D Action Platformer & Beat 'em Up.">
   <title>SHADOW WARRIOR – GAMERKIE EDITION</title>
-  <!-- ?v=3 ensures browser loads the new MOBA styles immediately -->
-  <link rel="stylesheet" href="style.css?v=3">
+  <link rel="stylesheet" href="style.css?v=10">
+  <style>
+    /* CRITICAL INLINE OVERRIDES: Guaranteed Instant Load (No Browser Cache Delay) */
+    html, body, #game-shell {
+      position: fixed !important;
+      inset: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      max-height: 100dvh !important;
+      overflow: hidden !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      touch-action: none !important;
+    }
+
+    /* Keep Touch Layer 52px ABOVE bottom edge so buttons NEVER sink or cut off */
+    #touch-controls.touch-layer {
+      position: fixed !important;
+      left: max(22px, env(safe-area-inset-left, 22px)) !important;
+      right: max(22px, env(safe-area-inset-right, 22px)) !important;
+      bottom: max(48px, calc(env(safe-area-inset-bottom, 18px) + 36px)) !important;
+      height: 180px !important;
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: flex-end !important;
+      pointer-events: none !important;
+      z-index: 50 !important;
+    }
+
+    /* LEFT SIDE: MOBA 360-Degree Drag/Scroll Virtual Joystick */
+    .moba-joystick-zone {
+      position: relative !important;
+      width: 146px !important;
+      height: 146px !important;
+      pointer-events: auto !important;
+      touch-action: none !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+
+    .joystick-base {
+      position: relative !important;
+      width: 132px !important;
+      height: 132px !important;
+      border-radius: 50% !important;
+      background: radial-gradient(circle, rgba(15, 23, 42, 0.45) 0%, rgba(15, 23, 42, 0.85) 100%) !important;
+      border: 2.5px solid rgba(56, 189, 248, 0.6) !important;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.75), inset 0 0 18px rgba(56, 189, 248, 0.28) !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+
+    .joy-dir {
+      position: absolute !important;
+      font-size: 11px !important;
+      font-weight: 900 !important;
+      color: rgba(125, 211, 252, 0.55) !important;
+      pointer-events: none !important;
+      transition: color 0.1s, transform 0.1s !important;
+    }
+    .joy-dir.active-dir {
+      color: #fde047 !important;
+      text-shadow: 0 0 8px #f59e0b !important;
+      transform: scale(1.25) !important;
+    }
+    .joy-up    { top: 7px !important; left: 50% !important; transform: translateX(-50%) !important; }
+    .joy-down  { bottom: 7px !important; left: 50% !important; transform: translateX(-50%) !important; }
+    .joy-left  { left: 9px !important; top: 50% !important; transform: translateY(-50%) !important; }
+    .joy-right { right: 9px !important; top: 50% !important; transform: translateY(-50%) !important; }
+
+    .joystick-stick {
+      position: absolute !important;
+      width: 56px !important;
+      height: 56px !important;
+      border-radius: 50% !important;
+      background: radial-gradient(circle at 35% 35%, #38bdf8, #0284c7, #0f172a) !important;
+      border: 2.5px solid #bae6fd !important;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.8), 0 0 14px rgba(56, 189, 248, 0.55) !important;
+      pointer-events: none !important;
+      transform: translate3d(0px, 0px, 0px);
+    }
+
+    .joystick-stick.active-stick {
+      background: radial-gradient(circle at 35% 35%, #fde047, #f59e0b, #b45309) !important;
+      border-color: #ffffff !important;
+      box-shadow: 0 0 20px rgba(250, 204, 21, 0.85) !important;
+    }
+
+    /* RIGHT SIDE: MOBA Legends Radial Skill Arc */
+    .touch-right-cluster {
+      position: relative !important;
+      width: 205px !important;
+      height: 175px !important;
+      pointer-events: auto !important;
+      display: block !important;
+    }
+
+    .touch-right-cluster .act-btn {
+      position: absolute !important;
+      border-radius: 50% !important;
+      color: #ffffff !important;
+      font-weight: 900 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.75), inset 0 2px 5px rgba(255, 255, 255, 0.4) !important;
+      touch-action: none !important;
+    }
+
+    #touch-punch.btn-punch {
+      width: 76px !important;
+      height: 76px !important;
+      right: 4px !important;
+      bottom: 4px !important;
+      font-size: 14px !important;
+      background: radial-gradient(circle at 30% 30%, #f87171, #dc2626, #7f1d1d) !important;
+      border: 3.5px solid #fde047 !important;
+      box-shadow: 0 0 22px rgba(239, 68, 68, 0.8) !important;
+      z-index: 3 !important;
+    }
+
+    #touch-dodge.btn-dodge {
+      width: 50px !important;
+      height: 50px !important;
+      right: 108px !important;
+      bottom: 4px !important;
+      font-size: 9px !important;
+      background: radial-gradient(circle at 30% 30%, #34d399, #059669, #064e3b) !important;
+      border: 2.5px solid #a7f3d0 !important;
+    }
+
+    #touch-heavy.btn-heavy {
+      width: 54px !important;
+      height: 54px !important;
+      right: 98px !important;
+      bottom: 66px !important;
+      font-size: 10px !important;
+      background: radial-gradient(circle at 30% 30%, #fbbf24, #d97706, #78350f) !important;
+      border: 2.5px solid #fef08a !important;
+    }
+
+    #touch-special.btn-special {
+      width: 56px !important;
+      height: 56px !important;
+      right: 50px !important;
+      bottom: 110px !important;
+      font-size: 11px !important;
+      background: radial-gradient(circle at 30% 30%, #c084fc, #7e22ce, #3b0764) !important;
+      border: 2.5px solid #f3e8ff !important;
+    }
+
+    #touch-jump.btn-jump {
+      width: 56px !important;
+      height: 56px !important;
+      right: 0px !important;
+      bottom: 94px !important;
+      font-size: 10px !important;
+      background: radial-gradient(circle at 30% 30%, #38bdf8, #0284c7, #0c4a6e) !important;
+      border: 2.5px solid #bae6fd !important;
+    }
+
+    /* Compact Main Menu Grid so bottom buttons never push off-screen */
+    .menu-screen {
+      position: fixed !important;
+      inset: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      max-height: 100dvh !important;
+      padding: 10px 20px 44px 20px !important;
+      box-sizing: border-box !important;
+      overflow-y: auto !important;
+    }
+    .menu-grid {
+      display: grid !important;
+      grid-template-columns: repeat(4, 1fr) !important;
+      gap: 7px !important;
+      max-width: 920px !important;
+      width: 100% !important;
+      margin: 0 auto !important;
+    }
+    .menu-btn {
+      padding: 8px 6px !important;
+      font-size: 11px !important;
+    }
+
+    @media (max-height: 500px), (max-width: 820px) {
+      #touch-controls.touch-layer {
+        bottom: max(38px, calc(env(safe-area-inset-bottom, 14px) + 26px)) !important;
+      }
+      .moba-joystick-zone {
+        transform: scale(0.86);
+        transform-origin: bottom left;
+      }
+      .touch-right-cluster {
+        transform: scale(0.85);
+        transform-origin: bottom right;
+      }
+    }
+  </style>
 </head>
 <body>
   <!-- ROTATE SCREEN INDICATOR OVERLAY (Shows automatically on Mobile Portrait) -->
@@ -19,7 +218,7 @@
       </div>
       <div class="brand-badge" style="margin-bottom: 10px;">GAMERKIE EDITION</div>
       <h2>ROTATE YOUR DEVICE</h2>
-      <p>Please turn your phone to <strong>Landscape Mode</strong> for the best MOBA combat experience.</p>
+      <p>Please turn your phone to <strong>Landscape Mode</strong> for the best MOBA Joystick &amp; Skill Wheel experience.</p>
       <button type="button" id="btn-dismiss-rotate" class="rotate-skip-btn">Continue Anyway</button>
     </div>
   </div>
@@ -94,17 +293,20 @@
 
       <div id="hud-toast" class="hud-toast hidden">CHECKPOINT REACHED!</div>
 
-      <!-- BOTTOM: MOBA LEGENDS RADIAL TOUCH CONTROLS -->
+      <!-- BOTTOM: MOBA LEGENDS ANALOG JOYSTICK + RADIAL SKILL WHEEL -->
       <div id="touch-controls" class="touch-layer">
-        <!-- Left Pad Cluster -->
-        <div class="touch-left-cluster">
-          <div class="dpad-ring"></div>
-          <button id="touch-left" class="touch-btn dpad-btn btn-left" data-action="left" aria-label="Move Left">&#9664;</button>
-          <button id="touch-crouch" class="touch-btn dpad-btn crouch-btn" data-action="down" aria-label="Block or Crouch">GUARD</button>
-          <button id="touch-right" class="touch-btn dpad-btn btn-right" data-action="right" aria-label="Move Right">&#9654;</button>
+        <!-- LEFT SIDE: Smooth Drag/Scroll Analog Virtual Joystick (Left/Right/Up/Down) -->
+        <div id="moba-joystick-zone" class="moba-joystick-zone" aria-label="Virtual Movement Joystick">
+          <div id="moba-joystick-base" class="joystick-base">
+            <span id="joy-ind-up" class="joy-dir joy-up">&#9650;</span>
+            <span id="joy-ind-down" class="joy-dir joy-down">&#9660;</span>
+            <span id="joy-ind-left" class="joy-dir joy-left">&#9664;</span>
+            <span id="joy-ind-right" class="joy-dir joy-right">&#9654;</span>
+            <div id="moba-joystick-stick" class="joystick-stick"></div>
+          </div>
         </div>
 
-        <!-- Right MOBA Skill Wheel -->
+        <!-- RIGHT SIDE: MOBA Skill Wheel -->
         <div class="touch-right-cluster">
           <button id="touch-dodge" class="touch-btn act-btn btn-dodge" data-action="dodge">DODGE</button>
           <button id="touch-heavy" class="touch-btn act-btn btn-heavy" data-action="heavy">HEAVY</button>
@@ -265,15 +467,15 @@
   </script>
 
   <!-- Modular Engine Scripts -->
-  <script src="save.js"></script>
-  <script src="audio.js"></script>
-  <script src="weapons.js"></script>
-  <script src="player.js"></script>
-  <script src="combat.js"></script>
-  <script src="enemies.js"></script>
-  <script src="bosses.js"></script>
-  <script src="levels.js"></script>
-  <script src="ui.js"></script>
-  <script src="game.js"></script>
+  <script src="save.js?v=10"></script>
+  <script src="audio.js?v=10"></script>
+  <script src="weapons.js?v=10"></script>
+  <script src="player.js?v=10"></script>
+  <script src="combat.js?v=10"></script>
+  <script src="enemies.js?v=10"></script>
+  <script src="bosses.js?v=10"></script>
+  <script src="levels.js?v=10"></script>
+  <script src="ui.js?v=10"></script>
+  <script src="game.js?v=10"></script>
 </body>
 </html>
