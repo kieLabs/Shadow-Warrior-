@@ -6,16 +6,31 @@
   <meta name="theme-color" content="#0a0c14">
   <meta name="description" content="SHADOW WARRIOR – GAMERKIE EDITION: Fight Your Way. Become a Legend. Premium 2D Action Platformer & Beat 'em Up.">
   <title>SHADOW WARRIOR – GAMERKIE EDITION</title>
-  <link rel="stylesheet" href="style.css">
+  <!-- ?v=3 ensures browser loads the new MOBA styles immediately -->
+  <link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
+  <!-- ROTATE SCREEN INDICATOR OVERLAY (Shows automatically on Mobile Portrait) -->
+  <div id="rotate-device-overlay" aria-live="polite">
+    <div class="rotate-card">
+      <div class="phone-rotate-icon">
+        <div class="phone-notch"></div>
+        <div class="phone-arrow">&#8635;</div>
+      </div>
+      <div class="brand-badge" style="margin-bottom: 10px;">GAMERKIE EDITION</div>
+      <h2>ROTATE YOUR DEVICE</h2>
+      <p>Please turn your phone to <strong>Landscape Mode</strong> for the best MOBA combat experience.</p>
+      <button type="button" id="btn-dismiss-rotate" class="rotate-skip-btn">Continue Anyway</button>
+    </div>
+  </div>
+
   <div id="game-shell">
-    <!-- Main Rendering Canvas (L[span_14](start_span)[span_14](end_span)[span_17](start_span)[span_17](end_span)[span_20](start_span)[span_20](end_span)ogical 1280x720) -->
+    <!-- Main Rendering Canvas (Logical 1280x720) -->
     <canvas id="game-canvas" width="1280" height="720"></canvas>
 
     <!-- In-Game HUD Overlay -->
     <div id="hud-layer" class="hidden">
-      <!-- TOP LEFT: Portrait, Health, Energy, Combo -->
+      <!-- TOP LEFT: Portrait, Health, Energy -->
       <div class="hud-top-left">
         <div class="hero-portrait-box">
           <canvas id="hud-portrait-canvas" width="56" height="56"></canvas>
@@ -79,19 +94,23 @@
 
       <div id="hud-toast" class="hud-toast hidden">CHECKPOINT REACHED!</div>
 
-      <!-- BOTTOM: Mobile Multi-Touch Controls -->
+      <!-- BOTTOM: MOBA LEGENDS RADIAL TOUCH CONTROLS -->
       <div id="touch-controls" class="touch-layer">
+        <!-- Left Pad Cluster -->
         <div class="touch-left-cluster">
-          <button id="touch-left" class="touch-btn dpad-btn" data-action="left" aria-label="Move Left">&#9664;</button>
-          <button id="touch-crouch" class="touch-btn dpad-btn crouch-btn" data-action="down" aria-label="Block or Crouch">&#9660;</button>
-          <button id="touch-right" class="touch-btn dpad-btn" data-action="right" aria-label="Move Right">&#9654;</button>
+          <div class="dpad-ring"></div>
+          <button id="touch-left" class="touch-btn dpad-btn btn-left" data-action="left" aria-label="Move Left">&#9664;</button>
+          <button id="touch-crouch" class="touch-btn dpad-btn crouch-btn" data-action="down" aria-label="Block or Crouch">GUARD</button>
+          <button id="touch-right" class="touch-btn dpad-btn btn-right" data-action="right" aria-label="Move Right">&#9654;</button>
         </div>
+
+        <!-- Right MOBA Skill Wheel -->
         <div class="touch-right-cluster">
           <button id="touch-dodge" class="touch-btn act-btn btn-dodge" data-action="dodge">DODGE</button>
-          <button id="touch-special" class="touch-btn act-btn btn-special" data-action="special">SPECIAL</button>
           <button id="touch-heavy" class="touch-btn act-btn btn-heavy" data-action="heavy">HEAVY</button>
-          <button id="touch-punch" class="touch-btn act-btn btn-punch" data-action="punch">PUNCH</button>
+          <button id="touch-special" class="touch-btn act-btn btn-special" data-action="special">ULT</button>
           <button id="touch-jump" class="touch-btn act-btn btn-jump" data-action="jump">JUMP</button>
+          <button id="touch-punch" class="touch-btn act-btn btn-punch" data-action="punch">ATK</button>
         </div>
       </div>
     </div>
@@ -134,7 +153,7 @@
       </div>
     </div>
 
-    <!-- DYNAMIC SUB-MODAL SCREEN (Story Select, Modes, Heroes, Weapons, Upgrades, Missions, Achievements, Settings, HowTo) -->
+    <!-- DYNAMIC SUB-MODAL SCREEN -->
     <div id="screen-modal" class="menu-screen modal-overlay hidden">
       <div class="modal-card">
         <div class="modal-top">
@@ -200,6 +219,50 @@
       </div>
     </div>
   </div>
+
+  <!-- Orientation & Fullscreen Helper Script -->
+  <script>
+    (function () {
+      var overlay = document.getElementById('rotate-device-overlay');
+      var skipBtn = document.getElementById('btn-dismiss-rotate');
+      var userDismissed = false;
+
+      function checkOrientation() {
+        if (userDismissed) {
+          overlay.classList.remove('show-rotate');
+          return;
+        }
+        var isPortrait = window.innerHeight > window.innerWidth;
+        var isMobileOrTablet = window.innerWidth <= 920 || ('ontouchstart' in window);
+        if (isPortrait && isMobileOrTablet) {
+          overlay.classList.add('show-rotate');
+        } else {
+          overlay.classList.remove('show-rotate');
+        }
+      }
+
+      if (skipBtn) {
+        skipBtn.addEventListener('click', function () {
+          userDismissed = true;
+          overlay.classList.remove('show-rotate');
+        });
+      }
+
+      window.addEventListener('resize', checkOrientation);
+      window.addEventListener('orientationchange', function () {
+        userDismissed = false;
+        setTimeout(checkOrientation, 150);
+      });
+      document.addEventListener('fullscreenchange', function () {
+        if (document.fullscreenElement && screen.orientation && screen.orientation.lock) {
+          screen.orientation.lock('landscape').catch(function () {});
+        }
+        setTimeout(checkOrientation, 150);
+      });
+
+      checkOrientation();
+    })();
+  </script>
 
   <!-- Modular Engine Scripts -->
   <script src="save.js"></script>
