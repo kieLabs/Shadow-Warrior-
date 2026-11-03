@@ -1,6 +1,6 @@
 /**
  * SHADOW WARRIOR – GAMERKIE EDITION
- * game.js - Main requestAnimationFrame Loop, Multi-Touch Router, Camera & Asset Fallback
+ * game.js - Main requestAnimationFrame Loop, MOBA 360 Analog Joystick & Multi-Touch Router
  */
 (function (global) {
   'use strict';
@@ -102,25 +102,130 @@
 
     bindTouchControls() {
       const container = document.getElementById('touch-controls');
-      const buttons = Array.from(container.querySelectorAll('.touch-btn'));
+      const joyZone = document.getElementById('moba-joystick-zone');
+      const joyBase = document.getElementById('moba-joystick-base');
+      const joyStick = document.getElementById('moba-joystick-stick');
+      const indUp = document.getElementById('joy-ind-up');
+      const indDown = document.getElementById('joy-ind-down');
+      const indLeft = document.getElementById('joy-ind-left');
+      const indRight = document.getElementById('joy-ind-right');
 
-      const reconcileTouches = (e) => {
+      const skillButtons = Array.from(container.querySelectorAll('.act-btn'));
+      let joyTouchId = null;
+      let mouseDraggingJoy = false;
+
+      const updateJoystickVector = (clientX, clientY) => {
+        if (!joyBase || !joyStick) return;
+        const rect = joyBase.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const maxRadius = rect.width * 0.36;
+
+        let dx = clientX - centerX;
+        let dy = clientY - centerY;
+        const dist = Math.hypot(dx, dy);
+
+        if (dist > maxRadius && dist > 0) {
+          dx = (dx / dist) * maxRadius;
+          dy = (dy / dist) * maxRadius;
+        }
+
+        joyStick.style.transform = `translate3d(${dx.toFixed(1)}px, ${dy.toFixed(1)}px, 0px)`;
+        joyStick.classList.add('active-stick');
+
+        // Deadzone threshold for smooth scrolling Left, Right, Up, Down
+        const deadzone = 12;
+        const newLeft = dx < -deadzone;
+        const newRight = dx > deadzone;
+        const newUp = dy < -deadzone;
+        const newDown = dy > deadzone;
+
+        // Trigger jump when swiping joystick upward strongly
+        if (dy < -deadzone * 1.45 && !this.input.up) {
+          this.input.justPressed.jump = true;
+        }
+
+        this.input.left = newLeft;
+        this.input.right = newRight;
+        this.input.up = newUp;
+        this.input.down = newDown;
+
+        if (indLeft) indLeft.classList.toggle('active-dir', newLeft);
+        if (indRight) indRight.classList.toggle('active-dir', newRight);
+        if (indUp) indUp.classList.toggle('active-dir', newUp);
+        if (indDown) indDown.classList.toggle('active-dir', newDown);
+      };
+
+      const resetJoystick = () => {
+        joyTouchId = null;
+        mouseDraggingJoy = false;
+        if (joyStick) {
+          joyStick.style.transform = 'translate3d(0px, 0px, 0px)';
+          joyStick.classList.remove('active-stick');
+        }
+        this.input.left = false;
+        this.input.right = false;
+        this.input.up = false;
+        this.input.down = false;
+        if (indLeft) indLeft.classList.remove('active-dir');
+        if (indRight) indRight.classList.remove('active-dir');
+        if (indUp) indUp.classList.remove('active-dir');
+        if (indDown) indDown.classList.remove('active-dir');
+      };
+
+      const reconcileMultiTouch = (e) => {
         if (e.cancelable) e.preventDefault();
-        const activeActions = new Set();
+
+        const activeSkillActions = new Set();
+        let foundJoyTouch = false;
+        const joyRect = joyZone ? joyZone.getBoundingClientRect() : null;
 
         for (let i = 0; i < e.touches.length; i++) {
           const t = e.touches[i];
-          for (const btn of buttons) {
+
+          // Check if this touch belongs to the Left Analog Joystick
+          if (joyTouchId === t.identifier) {
+            foundJoyTouch = true;
+            updateJoystickVector(t.clientX, t.clientY);
+            continue;
+          }
+
+          // Start tracking joystick if touch begins inside left joystick zone (or bottom-left quadrant)
+          if (
+            joyTouchId === null &&
+            joyRect &&
+            t.clientX >= joyRect.left - 30 &&
+            t.clientX <= joyRect.right + 45 &&
+            t.clientY >= joyRect.top - 30 &&
+            t.clientY <= joyRect.bottom + 30
+          ) {
+            joyTouchId = t.identifier;
+            foundJoyTouch = true;
+            updateJoystickVector(t.clientX, t.clientY);
+            continue;
+          }
+
+          // Otherwise check Right MOBA Skill Wheel buttons
+          for (const btn of skillButtons) {
             const rect = btn.getBoundingClientRect();
-            if (t.clientX >= rect.left && t.clientX <= rect.right && t.clientY >= rect.top && t.clientY <= rect.bottom) {
-              activeActions.add(btn.dataset.action);
+            if (
+              t.clientX >= rect.left - 6 &&
+              t.clientX <= rect.right + 6 &&
+              t.clientY >= rect.top - 6 &&
+              t.clientY <= rect.bottom + 6
+            ) {
+              activeSkillActions.add(btn.dataset.action);
             }
           }
         }
 
-        buttons.forEach((btn) => {
+        if (!foundJoyTouch && joyTouchId !== null) {
+          resetJoystick();
+        }
+
+        skillButtons.forEach((btn) => {
           const act = btn.dataset.action;
-          const isPressed = activeActions.has(act);
+          const isPressed = activeSkillActions.has(act);
           btn.classList.toggle('pressed', isPressed);
           if (isPressed && !this.input[act]) {
             this.input.justPressed[act] = true;
@@ -129,10 +234,46 @@
         });
       };
 
-      container.addEventListener('touchstart', reconcileTouches, { passive: false });
-      container.addEventListener('touchmove', reconcileTouches, { passive: false });
-      container.addEventListener('touchend', reconcileTouches, { passive: false });
-      container.addEventListener('touchcancel', reconcileTouches, { passive: false });
+      container.addEventListener('touchstart', reconcileMultiTouch, { passive: false });
+      container.addEventListener('touchmove', reconcileMultiTouch, { passive: false });
+      container.addEventListener('touchend', reconcileMultiTouch, { passive: false });
+      container.addEventListener('touchcancel', reconcileMultiTouch, { passive: false });
+
+      // Desktop Mouse Drag Support on Left Joystick for easy testing
+      if (joyZone) {
+        joyZone.addEventListener('mousedown', (e) => {
+          e.preventDefault();
+          mouseDraggingJoy = true;
+          updateJoystickVector(e.clientX, e.clientY);
+        });
+        window.addEventListener('mousemove', (e) => {
+          if (mouseDraggingJoy) {
+            updateJoystickVector(e.clientX, e.clientY);
+          }
+        });
+        window.addEventListener('mouseup', () => {
+          if (mouseDraggingJoy) {
+            resetJoystick();
+          }
+        });
+      }
+
+      // Desktop Mouse Click Support on Right Skill Wheel buttons
+      skillButtons.forEach((btn) => {
+        const act = btn.dataset.action;
+        btn.addEventListener('mousedown', (e) => {
+          e.preventDefault();
+          btn.classList.add('pressed');
+          if (!this.input[act]) this.input.justPressed[act] = true;
+          this.input[act] = true;
+        });
+        const releaseBtn = () => {
+          btn.classList.remove('pressed');
+          this.input[act] = false;
+        };
+        btn.addEventListener('mouseup', releaseBtn);
+        btn.addEventListener('mouseleave', releaseBtn);
+      });
     }
 
     startStoryStage(worldId, levelNum) {
@@ -279,7 +420,6 @@
       ctx.clearRect(0, 0, 1280, 720);
 
       if (!this.level || !this.player) {
-        // Render animated menu backdrop
         const g = ctx.createLinearGradient(0, 0, 0, 720);
         g.addColorStop(0, '#090d16');
         g.addColorStop(1, '#1e1b4b');
